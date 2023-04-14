@@ -1,0 +1,174 @@
+CHIPSET/mm_sh1106.o: \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/CHIPSET/mm_sh1106.c \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/FreeRTOSConfig.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/build/include/sdkconfig.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/rom/ets_sys.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/eagle_soc.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/soc.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/projdefs.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/portable.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/deprecated_definitions.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/portmacro.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_attr.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/xtruntime.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/core.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/hal.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/core-matmap.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/tie.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/specreg.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/corebits.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/xtensa_rtos.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/system.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/simcall.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/xtensa_context.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/xtruntime-frames.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/xtensa_timer.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/FreeRTOSConfig.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/mpu_wrappers.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/heap/include/esp_heap_caps.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp_common/include/esp_err.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/heap/port/esp8266/include/esp_heap_config.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/task.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/list.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_system.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_idf_version.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/spi_flash/include/esp_spi_flash.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/spi_flash/include/spi_flash.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_task_wdt.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/gpio.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/pin_mux_register.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/eagle_soc.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/gpio_register.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/uart.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/log/include/esp_log.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/log/include/esp_log_internal.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/queue.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/i2c.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/gpio.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/semphr.h \
+ C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/queue.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_I2C/mk_i2c.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/mk_glcd_config.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/mk_glcd_base.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/COMMON/mk_glcd_common.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/TEXT/mk_glcd_text.h \
+ c:\msys32\workspace_rtos\19_udp_client_rtos\components\mk_mini_glcd\fonts\mk_fonts.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/mk_glcd_config.h \
+ C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/GRAPHICS/mk_glcd_graphics.h
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/FreeRTOSConfig.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/build/include/sdkconfig.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/rom/ets_sys.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/eagle_soc.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/soc.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/projdefs.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/portable.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/deprecated_definitions.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/portmacro.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_attr.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/xtruntime.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/core.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/hal.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/core-matmap.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/tie.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/specreg.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/corebits.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/xtensa_rtos.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/config/system.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/simcall.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/xtensa_context.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/xtensa/xtruntime-frames.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/xtensa_timer.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/port/esp8266/include/freertos/FreeRTOSConfig.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/mpu_wrappers.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/heap/include/esp_heap_caps.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp_common/include/esp_err.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/heap/port/esp8266/include/esp_heap_config.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/task.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/private/list.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_system.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_idf_version.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/spi_flash/include/esp_spi_flash.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/spi_flash/include/spi_flash.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp_task_wdt.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/gpio.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/pin_mux_register.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/eagle_soc.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/esp8266/gpio_register.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/uart.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/log/include/esp_log.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/log/include/esp_log_internal.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/queue.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/i2c.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/FreeRTOS.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/esp8266/include/driver/gpio.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/semphr.h:
+
+C:/msys32/home/KKohut/esp/ESP8266_RTOS_SDK/components/freertos/include/freertos/queue.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_I2C/mk_i2c.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/mk_glcd_config.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/mk_glcd_base.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/COMMON/mk_glcd_common.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/TEXT/mk_glcd_text.h:
+
+c:\msys32\workspace_rtos\19_udp_client_rtos\components\mk_mini_glcd\fonts\mk_fonts.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/mk_glcd_config.h:
+
+C:/msys32/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/GRAPHICS/mk_glcd_graphics.h:
+/workspace_RTOS/19_UDP_CLIENT_RTOS/components/MK_MINI_GLCD/CHIPSET/mm_sh1106.c:

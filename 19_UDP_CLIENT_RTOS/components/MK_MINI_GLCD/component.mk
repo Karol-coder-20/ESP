@@ -1,0 +1,7 @@
+#
+# Main Makefile. This is basically the same as a component makefile.
+#
+COMPONENT_ADD_INCLUDEDIRS := . CHIPSET COMMON FONTS GRAPHICS TEXT  
+COMPONENT_SRCDIRS := . CHIPSET COMMON FONTS GRAPHICS TEXT 
+
+

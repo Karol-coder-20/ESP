@@ -1,0 +1,114 @@
+----------------------------------------------------------------------------------------------
+KONFIGURACJA MinGW
+----------------------------------------------------------------------------------------------
+Stworzyæ plik o nazwie "export_idf_path.sh" w folderze
+C:\msys32_org\etc\profile.d\export_idf_path.sh
+
+w pliku wpisaæ jedn¹ liniê (zgodnie z informacj¹ w lekcji wideo)
+export IDF_PATH="$HOME/ESP8266_RTOS"
+
+Uruchomiæ konsolê DOS/CMD a w niej przejœæ do folderu
+cd c:\msys32
+
+i uruchomiæ plik: mingw32.exe
+
+Po uruchomieniu konsoli MinGW sprawdziæ czy widaæ œcie¿kê z pliku "export_idf_path.sh" poleceniem
+printenv IDF_PATH
+
+jeœli widaæ œcie¿kê, to wydaæ polecenie: (¿eby zaktualizowaæ pliki pythona na potrzeby projektów ESP)
+python.exe -m pip install -r $IDF_PATH/requirements.txt
+
+----------------------------------------------------------------------------------------------
+-- KONFIGURACJA ECLIPSE ----------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+
+ZROBIÆ USTAWIENIA W nowym workspace dla RTOS - globalne: (zgodnie z lekcj¹ wideo)
+- wy³¹czyæ Launchbar
+- w³¹czyæ auto_save
+- wy³¹czyæ spelling
+- odbindowaæ polecenia w keys dla CTRL+ALT+C
+
+w Menu: Window/Preferences C/C++/Build/Environment dodaæ dwie œcie¿ki:
+
+IDF_PATH	C:\msys32\home\admin\ESP8266_RTOS\
+PATH		C:\msys32\xtensa-lx106-elf\bin;C:\msys32\usr\bin;C:\msys32\mingw32\bin;
+
+
+
+----------------------------------------------------------------------------------------------
+
+SKOPIOWAÆ projekt "hello_world" z RTOS SDK z folderu EXAMPLES/get_started - mo¿na bezpoœrednio do "workspace_RTOS"
+
+ZAIMPORTOWAÆ projekt do Eclipsa "as makefile project"  
+
+
+----------------------------------------------------------------------------------------------
+SKONFIGUROWAÆ PROJEKT W ECLIPSE
+
+w Menu: Project/Properties C/C++/Build ---> zak³adka [Behavior]
+Mo¿na w³¹czyæ opcjê: "Enable paralell build" i ustawiæ 8 albo nawet 12 w¹tków (jobs)
+
+
+w Menu: Project/Properties C/C++/Build/Environment ---> poprawiæ œcie¿kê PATH po imporcie projektu:
+PATH		C:\msys32\xtensa-lx106-elf\bin;C:\msys32\usr\bin;C:\msys32\mingw32\bin;
+
+
+
+w Menu: Project/Properties C/C++/General/Project and Symbols ---> zak³adka [Includes] / Languages/GNU C
+dodaæ wszystkie œcie¿ki poni¿ej:
+
+C:\msys32\xtensa-lx106-elf\xtensa-lx106-elf\include
+C:\msys32\xtensa-lx106-elf\xtensa-lx106-elf\sys-include
+C:\msys32\home\admin\ESP8266_RTOS\components\freertos\include
+C:\msys32\home\admin\ESP8266_RTOS\components\esp8266\include
+C:\msys32\home\admin\ESP8266_RTOS\components\spi_flash\include
+C:\msys32\home\admin\ESP8266_RTOS\components\freertos\port\esp8266\include\freertos
+C:\msys32\home\admin\ESP8266_RTOS\components\freertos\include\freertos\private
+
+C:\msys32\home\admin\ESP8266_RTOS\components\esp_common\include			// #include "esp_err.h"
+C:\msys32\home\admin\ESP8266_RTOS\components\log\include				// #include "esp_log.h"
+C:\msys32\usr\lib\gcc\i686-pc-msys\7.3.0\include					// #include <stdbool.h>
+
+
+----------------------------------------------------------------------------------------------
+
+w kodzie Ÿród³owym nain dodaæ inkludes:
+
+#include "portmacro.h"
+#include "FreeRTOSConfig.h"
+#include "../build/include/sdkconfig.h"
+
+
+----------------------------------
+
+
+
+---------------------
+U W A G A  !
+---------------------
+
+Aby pozbyæ siê ma³ego wykrzykniczka przy nazwie projektu wejœæ do:
+
+Project/Properties/“C/C++ General” -> “Preprocessor Include Paths” i zak³adka [Providers]
+
+Na liœcie jest opcja:  “CDT Cross GCC Built-in Compiler Settings”
+klikn¹æ i zmieniæ zawartoœæ pola: “Command to get compiler specs” na: 
+xtensa-lx106-elf-gcc ${FLAGS} -E -P -v -dD "${INPUTS}"
+
+Kolejna opcja na liœcie: “CDT GCC Build Output Parser” 
+klikn¹æ i zmieniæ zawartoœæ pola: “Compiler command pattern” na:
+xtensa-lx106-elf-(gcc|g\+\+|c\+\+|cc|cpp|clang)
+
+
+..........................
+NA KONIEC ! ;)
+..........................
+
+warto wejœæ do: 
+
+ Project/Properties/“C/C++ General” -> “Indexer”
+
+zaznaczyæ na górze ptaka: “Enable project specific settings”
+a nastêpnie wy³¹czyæ ptaka o nazwie: “Allow heuristic resolution of includes”
+
+uuuuf to na prawdê ju¿ koniec ;)
