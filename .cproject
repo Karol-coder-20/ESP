@@ -23,20 +23,43 @@
 							<builder id="cdt.managedbuild.builder.gnu.cross.2141834472" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="12" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.498230859" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.include.paths.1335265473" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\usr\lib\gcc\i686-pc-msys\7.3.0\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\opt\xtensa-lx106-elf\xtensa-lx106-elf\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\opt\xtensa-lx106-elf\xtensa-lx106-elf\sys-include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\freertos\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp8266\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\spi_flash\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\freertos\port\esp8266\include\freertos&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\freertos\include\freertos\private&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp_common\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\opt\xtensa-lx106-elf\xtensa-lx106-elf\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\opt\xtensa-lx106-elf\xtensa-lx106-elf\sys-include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\log\include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\tcpip_adapter\include\&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\nvs_flash\include\&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp_event\include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\lwip\lwip\src\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\tcpip_adapter\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp_common\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp_event\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\nvs_flash\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\app_update\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\bootloader_support\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp_http_client\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\KKohut\esp\ESP8266_RTOS_SDK\components\esp_https_ota\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\opt\xtensa-esp32-elf\lib\gcc\xtensa-esp32-elf\5.2.0\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\xtensa-lx106-elf\xtensa-lx106-elf\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\xtensa-lx106-elf\xtensa-lx106-elf\sys-include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\freertos\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\esp8266\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\spi_flash\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\freertos\port\esp8266\include\freertos&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\freertos\include\freertos\private&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\esp_common\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\home\admin\ESP8266_RTOS\components\log\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\usr\lib\gcc\i686-pc-msys\7.3.0\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\tcpip_adapter\include\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\nvs_flash\include\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\esp_event\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\lwip\lwip\src\include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\app_update\include\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\bootloader_support\include\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\esp_http_client\include\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;c:\msys32\home\admin\ESP8266_RTOS\components\esp_https_ota\include\&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;C:\msys32\workspace_RTOS\SCHODY_PAWEL\main\core\inc&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2068389471" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -80,7 +103,7 @@
 			<target name="FLASH" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
 				<buildArguments>-j12</buildArguments>
-				<buildTarget>flash ESPPORT=com6 ESPBAUD=1500000</buildTarget>
+				<buildTarget>flash ESPPORT=com3 ESPBAUD=1500000</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>

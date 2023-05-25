@@ -3,7 +3,9 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := hello-world
+PROJECT_NAME := esp8266_fota_http_rtos
+
+
 
 include $(IDF_PATH)/make/project.mk
 

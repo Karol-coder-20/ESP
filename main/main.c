@@ -1,12 +1,7 @@
-/*	WIFI
- *  UDP Client
- *  dla ESP8266 RTOS
- *
+/*
  * 	main.c
  *
- * 	autor: Miros�aw Karda�
- * 	web: 	www.akademia.atnel.pl
- * 			www.atnel.pl
+ * 	autor: Karol Kohut
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,245 +40,506 @@
 #include "esp_err.h"
 #include "esp_log.h"
 
-//-----------------------------------------
+#include "esp_ota_ops.h"
+#include "esp_app_format.h"
 
+
+#include "esp_http_client.h"
+#include "esp_https_ota.h"
+
+#include <time.h>
+#include "lwip/apps/sntp.h"
+
+#include "mk_fota_http.h"
 #include "mk_i2c.h"
-#include "mk_glcd_base.h"
-//#include "ds18x20.h"
-
-#include "mk_wifi.h"
-#include "mk_tools.h"
+#include "vl53l1_api.h"
 
 
 
 
-#define RED		"\x1b""[0;31m"		// Red
-#define LIM		"\x1b""[0;32m"		// Lime
-#define YEL		"\x1b""[0;33m"		// Yellow
-#define BLU		"\x1b""[0;34m"		// Blue
-#define MAG		"\x1b""[0;35m"		// Magenta (Fuchsia)
-#define AQU		"\x1b""[0;36m"		// Aqua
+#define LED1_GPIO 		2
+const char* ssid = "ESP8266_KAJOJ";
+const char* password = "12345678";
+const int CONNECTED_BIT = BIT0;
 
-#define GRE		"\x1b""[0;37m"		// Green
-#define BRE		"\x1b""[0;38m"		// Bright Red
-#define BBL		"\x1b""[0;39m"		// Bright Blue
+const char *TAG = "FOTA: ";
 
-#define TCLS	"\x1b""[2J"			// CLS Terminal
+#define DEST_IP_ADDR "255.255.255.255"
+#define DEST_PORT 8888
+#define LOCAL_PORT 7777
 
 
-//#define LED1_GPIO 		2
+#define TASK_PRIORITY 1
+#define TASK_STACK_SIZE 2048
+#define INTERVAL_SECONDS 1
 
-/*************************************************************************************************************************/
-#define SIMPLE_CLIENT_EXAMPLE		1			// 1-najprostszy przyk�ad klienta UDP, 0-zaawansowany przyk�ad klienta UDP
-/*************************************************************************************************************************/
+#define MESSAGE_LENGTH ( 26u )
+#define RX_MESSAGE_LENGTH ( 128u )
 
-/*:::: praca ::::*/
-#ifdef PRACA
-#define UDP_REMOTE_ADDR		"192.168.1.188"
-#define UDP_REMOTE_ADDR2	"192.168.1.100"
-#define UDP_REMOTE_PORT		8888
-#endif
+#define COMMAND_LENGTH ( 3u )
+#define MAX_IP_LENGTH ( 16u )
 
+#define GPIO_INPUT_IO_14     14
+#define GPIO_INPUT_PIN_SEL  (1ULL<<GPIO_INPUT_IO_14)
+#define ESP_INTR_FLAG_DEFAULT 0
 
-/*:::: dom ::::*/
-#ifdef DOM
-#define UDP_REMOTE_ADDR		"192.168.2.130"
-#define UDP_REMOTE_ADDR2	"192.168.2.116"
-#define UDP_REMOTE_PORT		8888
-#endif
+typedef enum state {
+    INIT,
+    WIFI_CONNECTED,
+	WIFI_UPDATE,
+} state_t;
 
-/*:::: telefon ::::*/
-#ifdef TELEFON
-#define UDP_REMOTE_ADDR		"192.168.89.127"
-#define UDP_REMOTE_ADDR2	"192.168.89.128"
-#define UDP_REMOTE_PORT		8888
-#endif
-
-
-
-#if SIMPLE_CLIENT_EXAMPLE == 0
-QueueHandle_t xQueueClientUDP;
+TaskHandle_t xsend_udp_message;
+static EventGroupHandle_t s_wifi_event_group;
+static state_t current_state;
+static uint16_t distance = 0;
 
 typedef struct {
-	char data[100];
-} TQUEUE_UDP_CLI_DATA;
+    char *udp_msg;      // wskaźnik na ciąg znaków
+    size_t msg_length;  // długość ciągu znaków
+} udp_msg_t;
+// Definicja mutexu
+xSemaphoreHandle xMainSchedulerState_mutex = NULL;
+xSemaphoreHandle xSendViaUDP_semaphore = NULL;
+xSemaphoreHandle xDistance_semaphore = NULL;
 
-#endif
-
-static const char *TAG = "UDP CLIENT: ";
-
-
-
-
-
-#if SIMPLE_CLIENT_EXAMPLE == 1
-
-TaskHandle_t udp_client_task_handle;
-
-static void udp_client_task( void * arg ) {
+// Define the queue handle
+QueueHandle_t udp_queue;
+QueueHandle_t newIP_queue;
 
 
-	while(1) {
+xQueueHandle gpio_evt_queue = NULL;
 
-		struct sockaddr_in destAddr;
-		destAddr.sin_addr.s_addr = inet_addr( UDP_REMOTE_ADDR );
-		destAddr.sin_family = AF_INET;
-		destAddr.sin_port = htons( UDP_REMOTE_PORT );
 
-		int udp_cli_sock = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
-		if (udp_cli_sock < 0) {
-			ESP_LOGE( TAG, "Unable to create socket: errno %d", errno );
+
+VL53L1_Dev_t dev1;
+VL53L1_DEV Dev1 = &dev1;
+
+VL53L1_Dev_t dev2;
+VL53L1_DEV Dev2 = &dev2;
+
+VL53L1_RangingMeasurementData_t data;
+
+static void send_udp_message(void *param);
+
+static void init_semaphores()
+{
+    xMainSchedulerState_mutex = xSemaphoreCreateMutex();
+    if (xMainSchedulerState_mutex == NULL) {
+        printf("Failed to create mutex\n");
+        // obsłuż błąd
+    }
+    // Inicjalizacja semafora
+    xSendViaUDP_semaphore = xSemaphoreCreateBinary();
+	if (xSendViaUDP_semaphore == NULL) {
+		// Obsługa błędu niepowodzenia utworzenia semafora
+		// ...xSendViaUDP_semaphore
+		printf("Failed to xSendViaUDP_semaphore\n");
+	}
+
+	// Zwolnienie semafora
+	xSemaphoreGive(xSendViaUDP_semaphore);
+
+
+	xDistance_semaphore = xSemaphoreCreateBinary();
+	if (xDistance_semaphore == NULL) {
+		// Obsługa błędu niepowodzenia utworzenia semafora
+		// ...xSendViaUDP_semaphore
+		printf("Failed to xSendViaUDP_semaphore\n");
+	}
+
+	// Zwolnienie semafora
+	xSemaphoreGive(xDistance_semaphore);
+}
+
+static state_t current_state_get(void)
+{
+    state_t state;
+    xSemaphoreTake(xDistance_semaphore, portMAX_DELAY);
+    state = current_state;
+    xSemaphoreGive(xDistance_semaphore);
+    return state;
+}
+
+static state_t distance_get(void)
+{
+    uint16_t ret;
+    xSemaphoreTake(xDistance_semaphore, portMAX_DELAY);
+	ret = distance;
+    xSemaphoreGive(xDistance_semaphore);
+    return ret;
+}
+
+static void current_state_set(state_t param)
+{
+    xSemaphoreTake(xMainSchedulerState_mutex, portMAX_DELAY);
+    current_state = param;
+    xSemaphoreGive(xMainSchedulerState_mutex);
+}
+
+static void distance_set(uint16_t param)
+{
+    xSemaphoreTake(xMainSchedulerState_mutex, portMAX_DELAY);
+    distance = param;
+    xSemaphoreGive(xMainSchedulerState_mutex);
+}
+
+void decode_udp_message(void *pvParameters)
+{
+    char rx_buffer[RX_MESSAGE_LENGTH] = {0};
+
+    while (1) {
+        // Wait for a new message in the UDP queue
+        if (xQueueReceive(udp_queue, rx_buffer, portMAX_DELAY) == pdPASS) {
+            printf("Decoding message: %s\n", rx_buffer);
+
+            // Split the message into tokens
+            char *token;
+            token = strtok(rx_buffer, " \t\n\r");
+
+            if (token == NULL) {
+                // Do nothing if the message is empty
+            } else if (token[0] != '+') {
+                // If the message doesn't start with a plus sign, check for valid commands
+
+                if (strcmp(token, "idle") == 0) {
+                    // Create a new task to send a UDP message
+                    xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "WYSLALES IDLE", 5, NULL);
+
+                } else if (strcmp(token, "update") == 0) {
+                    // Set the current state and create a new task to send a UDP message
+                    current_state_set(WIFI_UPDATE);
+                    xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "start update", 5, NULL);
+
+                } else {
+                    // Create a new task to send a UDP message
+                    xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "NIE ZNAM TEGO POLECENIA", 5, NULL);
+                }
+
+            } else {
+                // If the message starts with a plus sign, check for valid commands
+
+                // Extract the command from the message
+                char command[COMMAND_LENGTH + 1] = {0};
+                char new_ip[MAX_IP_LENGTH] = {0};
+                strncpy(command, &token[1], COMMAND_LENGTH);
+
+                if (strcmp(command, "ip:") == 0) {
+                    // Create a new task to send the received message
+                    xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, token, 5, NULL);
+
+                    // Extract the IP address from the message
+                    if (strlen(token) - 4u) {
+                        strncpy(new_ip, &token[4], sizeof(new_ip));
+                        // Create a new task to send the extracted IP address
+                        xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, new_ip, 5, NULL);
+
+                        // Add the IP address to the newIP queue
+                        if (xQueueSend(newIP_queue, new_ip, 0) != pdPASS) {
+                            printf("Failed to add message to newIP queue\n");
+                        }
+
+                    } else {
+                        // Create a new task to send an error message
+                        xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "BRAK IP", 5, NULL);
+                    }
+
+                } else {
+                    // Create a new task to send an error message
+                    xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "NIE ZNAM TEGO POLECENIA", 5, NULL);
+                }
+            }
+        }
+    }
+}
+
+
+static void receive_udp_message()
+{
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sock < 0) {
+        printf("Failed to create socket\n");
+        return;
+    }
+
+    struct sockaddr_in destAddr = {0}; // inicjalizacja zerami
+    destAddr.sin_family = AF_INET;
+    destAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    destAddr.sin_port = htons(LOCAL_PORT);
+
+    if (bind(sock, (struct sockaddr *)&destAddr, sizeof(destAddr)) < 0) {
+        printf("Failed to bind socket\n");
+        return;
+    }
+
+    while (1) {
+        char rx_buffer[RX_MESSAGE_LENGTH] = {0}; // czyszczenie bufora
+        socklen_t fromlen = sizeof(destAddr);
+        int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&destAddr, &fromlen);
+        if (len < 0) {
+            printf("Failed to receive message\n");
+        } else {
+            printf("Received message: %s\n", rx_buffer);
+            // Add the message to the UDP queue
+			if (xQueueSend(udp_queue, rx_buffer, 0) != pdPASS) {
+				printf("Failed to add message to UDP queue\n");
+			}
+
+        }
+    }
+}
+
+
+static void send_udp_message(void *pvParameter) {
+    char *msg = (char *)pvParameter;
+
+    if (xSemaphoreTake( xSendViaUDP_semaphore, pdMS_TO_TICKS(100) ) == pdTRUE ) {
+        int sock = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP );
+        if (sock < 0) {
+            printf( "Failed to create socket\n" );
+            xSemaphoreGive(xSendViaUDP_semaphore);
+            vTaskDelete( NULL );
+        }
+
+        // Set socket option to allow broadcast
+        int broadcast_enable = 1;
+        setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast_enable, sizeof(broadcast_enable));
+
+        struct sockaddr_in destAddr;
+        destAddr.sin_addr.s_addr = inet_addr(DEST_IP_ADDR);
+        destAddr.sin_family = AF_INET;
+        destAddr.sin_port = htons(DEST_PORT);
+
+        char message[strlen(msg) + 6];
+        sprintf(message, "ESP: %s\n", msg);
+        int sent_bytes = sendto(sock, message, strlen(message), 0, (struct sockaddr *)&destAddr, sizeof(destAddr));
+        if (sent_bytes < 0) {
+            printf("Failed to send message\n");
+            xSemaphoreGive(xSendViaUDP_semaphore);
+            vTaskDelete( NULL );
+        }
+
+        printf("Message sent successfully\n");
+        close(sock);
+        // Release semaphore
+        xSemaphoreGive(xSendViaUDP_semaphore);
+        // Delete this task
+        vTaskDelete( NULL );
+    } else {
+        printf("Failed to take semaphore\n");
+        vTaskDelete( NULL );
+    }
+}
+
+
+static esp_err_t event_handler(void *ctx, system_event_t *event)
+{
+
+	printf("EVENT:  ");
+		printf("%d",event->event_id);
+		printf("\n");
+    switch (event->event_id) {
+        case SYSTEM_EVENT_STA_START:
+            esp_wifi_connect();
+            ESP_LOGI(TAG,"TRY connect wifi");
+            break;
+        case SYSTEM_EVENT_STA_GOT_IP:
+            xEventGroupSetBits(s_wifi_event_group, CONNECTED_BIT);
+            break;
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+        	current_state_set(INIT);
+            xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);
+            break;
+        case SYSTEM_EVENT_STA_CONNECTED:
+        	current_state_set(WIFI_CONNECTED);
+			ESP_LOGI(TAG,"WIFI connected");
+
+			xEventGroupClearBits(s_wifi_event_group, CONNECTED_BIT);
 			break;
-		}
-		ESP_LOGI(TAG, "UDP CLIENT Socket created");
+        default:
+            break;
+    }
+    return ESP_OK;
+}
 
-		while(1) {
+void wifi_init()
+{
+    s_wifi_event_group = xEventGroupCreate();
 
-			char data_to_send[50];
-			//sprintf( data_to_send, "Licznik: %d\n", licznik++ );
-			int err = sendto(udp_cli_sock, data_to_send, strlen(data_to_send), 0, (struct sockaddr *)&destAddr, sizeof(destAddr));
-			if (err < 0) {
-				ESP_LOGE(TAG, "Error occured during sending: errno %d", errno);
+    tcpip_adapter_init();
+    ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+
+    wifi_config_t wifi_config = {};
+    strcpy((char*)wifi_config.sta.ssid, ssid);
+    strcpy((char*)wifi_config.sta.password, password);
+    wifi_config.sta.bssid_set = false;
+
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+}
+
+
+static void task_WIFI(void *pvParameters)
+{
+	tcpip_adapter_ip_info_t ip_info;
+	ip4_addr_t server_ip;
+	uint16_t u16ExecutiveFreq_ms;
+	bool bSendingInfo = true;
+	char message[ MESSAGE_LENGTH ] = { 0 };
+	char new_ip[ MAX_IP_LENGTH + 1 ] = { 0 };
+
+    while (1) {
+    	u16ExecutiveFreq_ms = 100u;
+//    	printf("DIS: %d\n", distance_get());
+        switch ( current_state_get() ) {
+        case INIT:
+        	if ( esp_wifi_connect() > 0 ) u16ExecutiveFreq_ms = 10000u;
+
+            break;
+        case WIFI_CONNECTED:
+
+			tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &ip_info );
+
+			sprintf(message, "%s", ip4addr_ntoa(&ip_info.ip));
+			if ( bSendingInfo ) xTaskCreate( &send_udp_message, "send_udp_message_task", 4096, message, 5, NULL );
+
+        	u16ExecutiveFreq_ms = 5000u;
+
+
+        	break;
+        case WIFI_UPDATE:
+        	// Wait for a new message in the UDP queue
+        	xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "PODAJ IPSERWERA. \"+ip:xxx.xxx.xxx.xxx\"", 5, NULL);
+
+			if ( xQueueReceive(newIP_queue, new_ip, (TickType_t) 5000u / portTICK_PERIOD_MS) == pdPASS )
+			{
+				inet_pton(AF_INET, new_ip, &server_ip);
+
+				xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "STARTED_UPDATE", 5, NULL);
+
+				xTaskCreate(&ota_example_task, "ota_example_task", 8192, ip4addr_ntoa(&server_ip), 5, NULL);
+
+				vTaskDelay(pdMS_TO_TICKS(180000));
+				//if no reeset = FAILED
+				xTaskCreate(&send_udp_message, "send_udp_message_task", 4096, "UPDATED_FAILED", 5, NULL);
+
+				current_state_set(WIFI_CONNECTED);
 				break;
 			}
-			vTaskDelay( 100 );
+
+
 		}
+        vTaskDelay(pdMS_TO_TICKS(INTERVAL_SECONDS * u16ExecutiveFreq_ms));
 
-        if (udp_cli_sock != -1) {
-            ESP_LOGE(TAG, "Shutting down socket and restarting...");
-            shutdown(udp_cli_sock, 0);
-            close(udp_cli_sock);
-            break;		// je�li NIE chcemy kasowa� w�tku w callbacku OnDisconnect
-        }
+    }
+}
 
-        vTaskDelay( 100 );
+void sensors_init( VL53L1_DEV Dev )
+{
+	VL53L1_Error Status = VL53L1_ERROR_NONE;
+	uint8_t byteData = 0;
+	uint16_t wordData;
+
+
+	Status = VL53L1_DataInit(Dev);
+	printf( "init: %d \n", Status);
+	Status = VL53L1_StaticInit(Dev);
+	printf( "init2: %d \n", Status);
+	Status = VL53L1_SetDistanceMode(Dev, VL53L1_DISTANCEMODE_LONG);
+	printf( "dis: %d \n", Status);
+	Status = VL53L1_SetMeasurementTimingBudgetMicroSeconds(Dev, 50000);
+	printf( "budget: %d \n", Status);
+	Status = VL53L1_SetInterMeasurementPeriodMilliSeconds(Dev, 100);
+	printf( "period: %d \n", Status);
+    Status = VL53L1_StartMeasurement(Dev);
+    printf( "start: %d \n", Status);
+}
+
+void sensor_task(void *pvParameters)
+{
+	static VL53L1_RangingMeasurementData_t RangingData;
+	VL53L1_Error status = VL53L1_ERROR_NONE;
+//	Dev->i2c_slave_address = 0x52;
+    uint8_t byteData = 0;
+    uint16_t wordData;
+    VL53L1_Dev_t dev;
+
+    dev.i2c_slave_address = 0x52;
+
+	Dev1->i2c_slave_address = 0x54;
+	Dev2->i2c_slave_address = 0x52;
+
+//	gpio_set_level( 13, 0 );
+//	gpio_set_level( 12, 0 );
+//	vTaskDelay(pdMS_TO_TICKS(100));
+//
+	gpio_set_level( 13, 1 );
+
+	vTaskDelay(pdMS_TO_TICKS(100));
+
+    VL53L1_RdByte(Dev1, 0x010F, &byteData);
+	if ( byteData == 0 )
+	{
+		printf("need to set new addr! \n");
+		status = VL53L1_SetDeviceAddress(&dev, 0x56);
+			printf( "addr: %d \n", status);
+	}
+	else
+	{
+		printf("no need to set new addr! \n");
 	}
 
-	ESP_LOGW(TAG, "UDP CLIENT TASK - DELETE...");
-	vTaskDelay( 100 );
-	vTaskDelete(NULL);
+	byteData = 0;
+
+
+	gpio_set_level( 12, 1 );
+
+	vTaskDelay(pdMS_TO_TICKS(100));
+		 VL53L1_RdByte(Dev2, 0x010F, &byteData);
+		 printf( "rdByte: %d \n", byteData);
+
+
+	sensors_init(Dev2);
+	sensors_init(Dev1);
+
+while(1)
+{
+
+	vTaskDelay(pdMS_TO_TICKS(1000));
+	status = VL53L1_GetRangingMeasurementData(Dev2, &RangingData);
+	printf("%d,%d\n", RangingData.RangeStatus,
+								  RangingData.RangeMilliMeter);
+
 }
-#endif
 
 
 
 
 
+static void IRAM_ATTR gpio_isr_handler(void* arg)
+{
+    uint32_t gpio_num = (uint32_t) arg;
+//    printf("ISR\n");
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
+	gpio_set_level( LED1_GPIO, 0 );
 
-#if SIMPLE_CLIENT_EXAMPLE == 0
-static void udp_client_task( void * arg ) {
+}
 
-	BaseType_t xStatus;
-	TQUEUE_UDP_CLI_DATA dane;
-
-	while(1) {
-
-		struct sockaddr_in destAddr;
-		destAddr.sin_addr.s_addr = inet_addr( UDP_REMOTE_ADDR );
-		destAddr.sin_family = AF_INET;
-		destAddr.sin_port = htons( UDP_REMOTE_PORT );
-
-		int udp_cli_sock = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
-		if (udp_cli_sock < 0) {
-			ESP_LOGE( TAG, "Unable to create socket: errno %d", errno );
-			break;
-		}
-		ESP_LOGI(TAG, "UDP CLIENT Socket created");
-
-		while(1) {
-
-			memset( dane.data, 0, sizeof(dane.data) );
-			xStatus = xQueueReceive( xQueueClientUDP, &dane, portMAX_DELAY );	// dane z kolejki
-
-			if( xStatus == pdPASS ) {
-
-				int err = sendto(udp_cli_sock, dane.data, strlen(dane.data), 0, (struct sockaddr *)&destAddr, sizeof(destAddr));
-				if (err < 0) {
-					ESP_LOGE(TAG, "Error occured during sending: errno %d", errno);
-				}
-			}
-		}
-
-        if (udp_cli_sock != -1) {
-            ESP_LOGE(TAG, "Shutting down socket and restarting...");
-            shutdown(udp_cli_sock, 0);
-            close(udp_cli_sock);
-            break;
+static void gpio_task_example(void* arg)
+{
+    uint32_t io_num;
+    for(;;) {
+        if(xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
+            printf("GPIO[%d] intr, val: %d\n", io_num, gpio_get_level(io_num));
+            VL53L1_ClearInterruptAndStartMeasurement(Dev1);
         }
-	}
-
-	ESP_LOGW(TAG, "UDP CLIENT TASK - DELETE...");
-	vTaskDelay( 100 );
-	vTaskDelete(NULL);
+    }
 }
-#endif
-
-
-
-
-
-
-
-
-
-
-void mk_got_ip_cb( char * ip ) {
-
-	szachownica = 0;
-	glcd_drawRect( 0, 6, 128, 29, 1 );
-	setCurrentFont( &DefaultFont5x8 );
-	glcd_puts( 7, 10, "STA connected, IP:", 1 );
-	setCurrentFont( &font_bitocra5x13 );
-	glcd_puts( 7, 20, ip, 1 );
-	glcd_display();
-
-	tcpip_adapter_ip_info_t ip_info;
-
-	tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_STA, &ip_info );
-	printf( "[STA] IP: " IPSTR "\n", IP2STR(&ip_info.ip) );
-	printf( "[STA] MASK: " IPSTR "\n", IP2STR(&ip_info.netmask) );
-	printf( "[STA] GW: " IPSTR "\n", IP2STR(&ip_info.gw) );
-
-	tcpip_adapter_get_ip_info( TCPIP_ADAPTER_IF_AP, &ip_info );
-	printf( "[AP] IP: " IPSTR "\n", IP2STR(&ip_info.ip) );
-	printf( "[AP] MASK: " IPSTR "\n", IP2STR(&ip_info.netmask) );
-	printf( "[AP] GW: " IPSTR "\n", IP2STR(&ip_info.gw) );
-
-#if SIMPLE_CLIENT_EXAMPLE == 0
-	xTaskCreate( udp_client_task, "", 4096, NULL, 1, NULL  );
-#endif
-
-#if SIMPLE_CLIENT_EXAMPLE == 1
-	xTaskCreate( udp_client_task, "", 4096, NULL, 1, &udp_client_task_handle  );
-#endif
-}
-
-
-void mk_sta_disconnected_cb( void ) {
-
-	szachownica = 0;
-	glcd_drawRect( 0, 6, 128, 29, 1 );
-	glcd_fillRect( 1, 7, 126, 27, 0 );
-	setCurrentFont( &DefaultFont5x8 );
-	glcd_puts( 7, 10, "STA disconnected", 1 );
-	glcd_display();
-
-#if SIMPLE_CLIENT_EXAMPLE == 1
-//	if( udp_client_task_handle != NULL ) {
-//		ESP_LOGW(TAG, "UDP CLIENT TASK - DELETE from callback");
-//		vTaskDelete( udp_client_task_handle );
-//		udp_client_task_handle = NULL;
-//	}
-#endif
-
-}
-
-
-
-
-
-
-
 
 void app_main() {
 
@@ -293,119 +549,66 @@ void app_main() {
 	printf("\nREADY\n");
 
 	/*........ konfiguracja pin�w dla diod LED ..................................*/
-//	gpio_set_direction( LED1_GPIO, GPIO_MODE_OUTPUT );
-//	gpio_set_level( LED1_GPIO, 1 );
+	gpio_set_direction( LED1_GPIO, GPIO_MODE_OUTPUT );
+	gpio_set_level( LED1_GPIO, 1 );
 
-#if SIMPLE_CLIENT_EXAMPLE == 0
-	/* ```````` Inicjalizacja 1wire ```````````````````````````````````````````` */
-	ow_init( 13 );
-#endif
+
+	gpio_set_direction( 13, GPIO_MODE_OUTPUT );
+	gpio_set_level( 13, 0 );
+	gpio_set_direction( 12, GPIO_MODE_OUTPUT );
+	gpio_set_level( 12, 0 );
+
+//	gpio_set_direction( 14, GPIO_MODE_INPUT );
+	gpio_config_t io_conf;
+	    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+	    io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL;
+	    io_conf.mode = GPIO_MODE_INPUT;
+	    io_conf.pull_up_en = 1;
+	    gpio_config(&io_conf);
+//
+//
+//
+	    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+	        xTaskCreate(gpio_task_example, "gpio_task_example", 2048, NULL, 10, NULL);
+	        gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+	        gpio_isr_handler_add(GPIO_INPUT_IO_14, gpio_isr_handler, (void*) GPIO_INPUT_IO_14);
+//		gpio_set_level( 13, 1 );
 
 	/* ```````` Inicjalizacja I2C `````````````````````````````````````````````` */
+
 	i2c_init( 0, 5, 4 );
-
-	/* ```````` Inicjalizacja OLED ````````````````````````````````````````````` */
-	glcd_init( 220 );
-
-#if SIMPLE_CLIENT_EXAMPLE == 0
-	/* ```````` Inicjalizacja kolejki na potrzeby UDP `````````````````````````` */
-	xQueueClientUDP = xQueueCreate( 5, sizeof( TQUEUE_UDP_CLI_DATA ) );
-#endif
 
 	/* ```````` Inicjalizacja NVS `````````````````````````````````````````````` */
 	nvs_flash_init();
 
+	/* ```````` Inicjalizacja sema `````````````````````````````````````````````` */
+	init_semaphores();
+
+	// Create the queue with a length of 10 messages
+	    udp_queue = xQueueCreate(10, sizeof(char[RX_MESSAGE_LENGTH]));
+	    if (udp_queue == NULL) {
+	        printf("Failed to create UDP queue\n");
+	        return;
+	    }
+	    newIP_queue = xQueueCreate(10, sizeof(char[MAX_IP_LENGTH + 1]));
+	    if (newIP_queue == NULL) {
+	        printf("Failed to create UDP queue\n");
+	        return;
+	    }
+
 	/* ```````` Inicjalizacja WiFi ````````````````````````````````````````````` */
-//	mk_wifi_init( WIFI_MODE_APSTA, mk_got_ip_cb, mk_sta_disconnected_cb, mk_ap_join_cb, mk_ap_leave_cb  );
-//	mk_wifi_init( WIFI_MODE_AP, NULL, NULL, mk_ap_join_cb, mk_ap_leave_cb );
-	mk_wifi_init( WIFI_MODE_STA, mk_got_ip_cb, mk_sta_disconnected_cb, NULL, NULL );
+	wifi_init();
 
-	/* ```````` Skanowanie dost�pnych sieci  ``````````````````````````````````` */
-	mk_wifi_scan( NULL );
+	xTaskCreate(&receive_udp_message, "receive_udp_message", 2048, NULL, 5, NULL);
+	xTaskCreate(&decode_udp_message, "decode_udp_message", 4096, NULL, 4, NULL);
 
 
+	current_state_set(INIT);
 
-	/*........ uruchamianie task�w roboczych ....................................*/
-
-
-
-#if SIMPLE_CLIENT_EXAMPLE == 1
-
-	while(1) {
-
-		vTaskDelay( 100 );
-	}
+	xTaskCreate(task_WIFI, "task_WIFI", TASK_STACK_SIZE, NULL, TASK_PRIORITY, NULL);
+	xTaskCreate(sensor_task, "sensor_task", 4096, NULL, 5, NULL);
 
 
-#else
-
-
-	/* ---- zmienne lokalne g��wnego tasku ------------------------------------- */
-	TQUEUE_UDP_CLI_DATA dane;
-
-	char buf[128];
-
-	uint8_t czujniki_cnt;
-	uint8_t subzero, cel, cel_fract_bits;
-	uint8_t sw=0;
-
-
-	TickType_t xLastWakeTime = xTaskGetTickCount();
-
-
-/*............ G��WNY W�TEK .....................*/
-	while(1) {
-
-		if( !sw ) {
-			czujniki_cnt = search_sensors();
-			DS18X20_start_meas( DS18X20_POWER_EXTERN, NULL );
-		}
-
-		if( sw && czujniki_cnt > 0 ) {
-
-			szachownica = 0;
-			glcd_fillRect(  5, 40, 115, 14, 0 );
-
-			setCurrentFont( &font_bitocra5x13 );
-
-			int err = DS18X20_read_meas( gSensorIDs[0], &subzero, &cel, &cel_fract_bits );
-			if( err == DS18X20_OK ) {
-				int8_t acel = cel;
-				if( subzero ) acel = cel * -1;
-				sprintf( buf, "(1) Temperatura DS18B20: %d,%d C\n", acel, cel_fract_bits );
-				printf( buf );
-
-				sprintf( dane.data, "(1) Temperatura DS18B20: %d,%d C\n", acel, cel_fract_bits );
-
-				xQueueSend( xQueueClientUDP, &dane, 0 );
-
-				sprintf( buf, "(1)�   IN: %d.%d" "�C", acel, cel_fract_bits );
-				glcd_puts( 5, 40, buf, 1 );
-
-			} else {
-				sprintf( buf, "(1)� error: %d", err );
-				glcd_puts( 5, 40, buf, 1 );
-				printf("(1) error: %d\n", err);
-
-				sprintf( dane.data, "(1) error: %d\n", err );
-				xQueueSend( xQueueClientUDP, &dane, 0 );
-			}
-
-			glcd_display();
-		}
-
-		if( !sw ) vTaskDelayUntil( &xLastWakeTime, 80 );
-
-		sw ^= 1;
-	}
-#endif
 }
-
-
-
-
-
-
-
 
 
