@@ -122,8 +122,6 @@ TaskHandle_t udp_client_task_handle;
 
 static void udp_client_task( void * arg ) {
 
-	uint8_t licznik = 0;
-	eTaskGetState(udp_client_task_handle);
 
 	while(1) {
 
@@ -142,7 +140,7 @@ static void udp_client_task( void * arg ) {
 		while(1) {
 
 			char data_to_send[50];
-			sprintf( data_to_send, "Licznik: %d\n", licznik++ );
+			//sprintf( data_to_send, "Licznik: %d\n", licznik++ );
 			int err = sendto(udp_cli_sock, data_to_send, strlen(data_to_send), 0, (struct sockaddr *)&destAddr, sizeof(destAddr));
 			if (err < 0) {
 				ESP_LOGE(TAG, "Error occured during sending: errno %d", errno);
