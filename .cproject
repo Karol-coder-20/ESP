@@ -103,7 +103,7 @@
 			<target name="FLASH" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 				<buildCommand>make</buildCommand>
 				<buildArguments>-j12</buildArguments>
-				<buildTarget>flash ESPPORT=com3 ESPBAUD=1500000</buildTarget>
+				<buildTarget>flash ESPPORT=com4 ESPBAUD=1500000</buildTarget>
 				<stopOnError>true</stopOnError>
 				<useDefaultCommand>true</useDefaultCommand>
 				<runAllBuilders>true</runAllBuilders>
