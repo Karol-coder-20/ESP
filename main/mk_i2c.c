@@ -78,7 +78,7 @@
 
 #include "portmacro.h"
 #include "FreeRTOSConfig.h"
-#include "..\..\build\include\sdkconfig.h"
+// #include "..\..\build\include\sdkconfig.h"
 
 //------------------------------------------------
 

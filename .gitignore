@@ -1,0 +1,8 @@
+/.project
+/build
+*.log
+*.html
+*.hex
+*.obj
+*.cproject
+*.bak

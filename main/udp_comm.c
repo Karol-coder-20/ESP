@@ -12,7 +12,7 @@
 #include "freertos/task.h"
 
 #include "portmacro.h"
-#include "..\build\include\sdkconfig.h"
+// #include "..\build\include\sdkconfig.h"
 
 #include "lwip/sockets.h"
 void handle_idle_command();

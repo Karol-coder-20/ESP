@@ -13,7 +13,7 @@
 
 #include "portmacro.h"
 #include "FreeRTOSConfig.h"
-#include "..\build\include\sdkconfig.h"
+// #include "..\build\include\sdkconfig.h"
 
 #include "driver/gpio.h"
 #include "driver/uart.h"
