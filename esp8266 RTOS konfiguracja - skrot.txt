@@ -1,34 +1,34 @@
 ----------------------------------------------------------------------------------------------
 KONFIGURACJA MinGW
 ----------------------------------------------------------------------------------------------
-Stworzyæ plik o nazwie "export_idf_path.sh" w folderze
+Stworzyï¿½ plik o nazwie "export_idf_path.sh" w folderze
 C:\msys32_org\etc\profile.d\export_idf_path.sh
 
-w pliku wpisaæ jedn¹ liniê (zgodnie z informacj¹ w lekcji wideo)
+w pliku wpisaï¿½ jednï¿½ liniï¿½ (zgodnie z informacjï¿½ w lekcji wideo)
 export IDF_PATH="$HOME/ESP8266_RTOS"
 
-Uruchomiæ konsolê DOS/CMD a w niej przejœæ do folderu
+Uruchomiï¿½ konsolï¿½ DOS/CMD a w niej przejï¿½ï¿½ do folderu
 cd c:\msys32
 
-i uruchomiæ plik: mingw32.exe
+i uruchomiï¿½ plik: mingw32.exe
 
-Po uruchomieniu konsoli MinGW sprawdziæ czy widaæ œcie¿kê z pliku "export_idf_path.sh" poleceniem
+Po uruchomieniu konsoli MinGW sprawdziï¿½ czy widaï¿½ ï¿½cieï¿½kï¿½ z pliku "export_idf_path.sh" poleceniem
 printenv IDF_PATH
 
-jeœli widaæ œcie¿kê, to wydaæ polecenie: (¿eby zaktualizowaæ pliki pythona na potrzeby projektów ESP)
+jeï¿½li widaï¿½ ï¿½cieï¿½kï¿½, to wydaï¿½ polecenie: (ï¿½eby zaktualizowaï¿½ pliki pythona na potrzeby projektï¿½w ESP)
 python.exe -m pip install -r $IDF_PATH/requirements.txt
 
 ----------------------------------------------------------------------------------------------
 -- KONFIGURACJA ECLIPSE ----------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 
-ZROBIÆ USTAWIENIA W nowym workspace dla RTOS - globalne: (zgodnie z lekcj¹ wideo)
-- wy³¹czyæ Launchbar
-- w³¹czyæ auto_save
-- wy³¹czyæ spelling
-- odbindowaæ polecenia w keys dla CTRL+ALT+C
+ZROBIï¿½ USTAWIENIA W nowym workspace dla RTOS - globalne: (zgodnie z lekcjï¿½ wideo)
+- wyï¿½ï¿½czyï¿½ Launchbar
+- wï¿½ï¿½czyï¿½ auto_save
+- wyï¿½ï¿½czyï¿½ spelling
+- odbindowaï¿½ polecenia w keys dla CTRL+ALT+C
 
-w Menu: Window/Preferences C/C++/Build/Environment dodaæ dwie œcie¿ki:
+w Menu: Window/Preferences C/C++/Build/Environment dodaï¿½ dwie ï¿½cieï¿½ki:
 
 IDF_PATH	C:\msys32\home\admin\ESP8266_RTOS\
 PATH		C:\msys32\xtensa-lx106-elf\bin;C:\msys32\usr\bin;C:\msys32\mingw32\bin;
@@ -37,25 +37,25 @@ PATH		C:\msys32\xtensa-lx106-elf\bin;C:\msys32\usr\bin;C:\msys32\mingw32\bin;
 
 ----------------------------------------------------------------------------------------------
 
-SKOPIOWAÆ projekt "hello_world" z RTOS SDK z folderu EXAMPLES/get_started - mo¿na bezpoœrednio do "workspace_RTOS"
+SKOPIOWAï¿½ projekt "hello_world" z RTOS SDK z folderu EXAMPLES/get_started - moï¿½na bezpoï¿½rednio do "workspace_RTOS"
 
-ZAIMPORTOWAÆ projekt do Eclipsa "as makefile project"  
+ZAIMPORTOWAï¿½ projekt do Eclipsa "as makefile project"  
 
 
 ----------------------------------------------------------------------------------------------
-SKONFIGUROWAÆ PROJEKT W ECLIPSE
+SKONFIGUROWAï¿½ PROJEKT W ECLIPSE
 
-w Menu: Project/Properties C/C++/Build ---> zak³adka [Behavior]
-Mo¿na w³¹czyæ opcjê: "Enable paralell build" i ustawiæ 8 albo nawet 12 w¹tków (jobs)
+w Menu: Project/Properties C/C++/Build ---> zakï¿½adka [Behavior]
+Moï¿½na wï¿½ï¿½czyï¿½ opcjï¿½: "Enable paralell build" i ustawiï¿½ 8 albo nawet 12 wï¿½tkï¿½w (jobs)
 
 
-w Menu: Project/Properties C/C++/Build/Environment ---> poprawiæ œcie¿kê PATH po imporcie projektu:
+w Menu: Project/Properties C/C++/Build/Environment ---> poprawiï¿½ ï¿½cieï¿½kï¿½ PATH po imporcie projektu:
 PATH		C:\msys32\xtensa-lx106-elf\bin;C:\msys32\usr\bin;C:\msys32\mingw32\bin;
 
 
 
-w Menu: Project/Properties C/C++/General/Project and Symbols ---> zak³adka [Includes] / Languages/GNU C
-dodaæ wszystkie œcie¿ki poni¿ej:
+w Menu: Project/Properties C/C++/General/Project and Symbols ---> zakï¿½adka [Includes] / Languages/GNU C
+dodaï¿½ wszystkie ï¿½cieï¿½ki poniï¿½ej:
 
 C:\msys32\xtensa-lx106-elf\xtensa-lx106-elf\include
 C:\msys32\xtensa-lx106-elf\xtensa-lx106-elf\sys-include
@@ -92,7 +92,7 @@ c:\msys32\home\admin\ESP8266_RTOS\components\esp_https_ota\include\		// #include
 
 ----------------------------------------------------------------------------------------------
 
-w kodzie Ÿród³owym nain dodaæ inkludes:
+w kodzie ï¿½rï¿½dï¿½owym nain dodaï¿½ inkludes:
 
 #include "portmacro.h"
 #include "FreeRTOSConfig.h"
@@ -107,16 +107,16 @@ w kodzie Ÿród³owym nain dodaæ inkludes:
 U W A G A  !
 ---------------------
 
-Aby pozbyæ siê ma³ego wykrzykniczka przy nazwie projektu wejœæ do:
+Aby pozbyï¿½ siï¿½ maï¿½ego wykrzykniczka przy nazwie projektu wejï¿½ï¿½ do:
 
-Project/Properties/“C/C++ General” -> “Preprocessor Include Paths” i zak³adka [Providers]
+Project/Properties/ï¿½C/C++ Generalï¿½ -> ï¿½Preprocessor Include Pathsï¿½ i zakï¿½adka [Providers]
 
-Na liœcie jest opcja:  “CDT Cross GCC Built-in Compiler Settings”
-klikn¹æ i zmieniæ zawartoœæ pola: “Command to get compiler specs” na: 
+Na liï¿½cie jest opcja:  ï¿½CDT Cross GCC Built-in Compiler Settingsï¿½
+kliknï¿½ï¿½ i zmieniï¿½ zawartoï¿½ï¿½ pola: ï¿½Command to get compiler specsï¿½ na: 
 xtensa-lx106-elf-gcc ${FLAGS} -E -P -v -dD "${INPUTS}"
 
-Kolejna opcja na liœcie: “CDT GCC Build Output Parser” 
-klikn¹æ i zmieniæ zawartoœæ pola: “Compiler command pattern” na:
+Kolejna opcja na liï¿½cie: ï¿½CDT GCC Build Output Parserï¿½ 
+kliknï¿½ï¿½ i zmieniï¿½ zawartoï¿½ï¿½ pola: ï¿½Compiler command patternï¿½ na:
 xtensa-lx106-elf-(gcc|g\+\+|c\+\+|cc|cpp|clang)
 
 
@@ -124,11 +124,16 @@ xtensa-lx106-elf-(gcc|g\+\+|c\+\+|cc|cpp|clang)
 NA KONIEC ! ;)
 ..........................
 
-warto wejœæ do: 
+warto wejï¿½ï¿½ do: 
 
- Project/Properties/“C/C++ General” -> “Indexer”
+ Project/Properties/ï¿½C/C++ Generalï¿½ -> ï¿½Indexerï¿½
 
-zaznaczyæ na górze ptaka: “Enable project specific settings”
-a nastêpnie wy³¹czyæ ptaka o nazwie: “Allow heuristic resolution of includes”
+zaznaczyï¿½ na gï¿½rze ptaka: ï¿½Enable project specific settingsï¿½
+a nastï¿½pnie wyï¿½ï¿½czyï¿½ ptaka o nazwie: ï¿½Allow heuristic resolution of includesï¿½
 
-uuuuf to na prawdê ju¿ koniec ;)
+uuuuf to na prawdï¿½ juï¿½ koniec ;)
+
+
+musi byc power shell zeby pwd dzialalo
+-v $(pwd):/backup
+cp -r $IDF_PATH/examples/get-started/hello_world .

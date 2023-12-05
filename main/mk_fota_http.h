@@ -36,13 +36,13 @@
 //#ifdef DOM
 
 /*----- adres lokalny komputera ---------------*/
-#define TCP_REMOTE_ADDR		"192.168.192.127"
+#define TCP_REMOTE_ADDR		"192.168.4.2"
 
 /*----- subdomena np test.atnel.pl ------------*/
 //#define	TCP_DOMENA			"test.atnel.pl"
 //#define TCP_REMOTE_ADDR		"94.152.54.109"
 
-#define TCP_REMOTE_PORT		80
+#define TCP_REMOTE_PORT		5000
 //#endif
 
 /*:::: telefon ::::*/

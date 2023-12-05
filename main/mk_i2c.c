@@ -2,39 +2,39 @@
  * mk_i2c.c WRAPER - RTOS ESP8266
  *
  *  Created on: 12 mar 2022
- *      Author: Miros³aw Kardaœ
+ *      Author: Mirosï¿½aw Kardaï¿½
  *
  *	!!!    U W A G A    !!!
- *	nale¿y wprowadziæ poprawkê do oryginalnego pliku i2c.c w folderze:
+ *	naleï¿½y wprowadziï¿½ poprawkï¿½ do oryginalnego pliku i2c.c w folderze:
  *
  *	\msys32\home\admin\ESP8266_RTOS\components\esp8266\driver
  *
  *	Jest to ORYGINALNY plik systemowy Espressif (i2c component) i zawiera
- *	paskudny b³¹d. B³¹d polega na tym, ¿e nie jest generowany sygna³ I2C STOP !!!
- *	gdy podczas wys³ania adresu urz¹dzenia I2C Slave na magistralê nie otrzymamy
+ *	paskudny bï¿½ï¿½d. Bï¿½ï¿½d polega na tym, ï¿½e nie jest generowany sygnaï¿½ I2C STOP !!!
+ *	gdy podczas wysï¿½ania adresu urzï¿½dzenia I2C Slave na magistralï¿½ nie otrzymamy
  *	ACK (potwierdzenia) to tylko w tym wypadku nie jest generowany I2C STOP.
- *	Wiêkszoœæ uk³adów I2C radzi sobie z tym problemem, ale niektóre niestety nie
- *	i zaczynaj¹ dzia³aæ niepoprawnie. Skopana jest bowiem funkcja:
+ *	Wiï¿½kszoï¿½ï¿½ ukï¿½adï¿½w I2C radzi sobie z tym problemem, ale niektï¿½re niestety nie
+ *	i zaczynajï¿½ dziaï¿½aï¿½ niepoprawnie. Skopana jest bowiem funkcja:
  *
  *	i2c_master_cmd_begin()
  *
- *	dlatego trzeba edytowaæ oryginalny plik i2c.h i znaleŸæ taki fragment kodu:
+ *	dlatego trzeba edytowaï¿½ oryginalny plik i2c.h i znaleï¿½ï¿½ taki fragment kodu:
  *
- 	     if (cmd->ack.en == 1) {			<--------- wystarczy wyszukaæ tê liniê
+ 	     if (cmd->ack.en == 1) {			<--------- wystarczy wyszukaï¿½ tï¿½ liniï¿½
               if ((retVal & 0x01) != cmd->ack.exp) {
                     p_i2c->status = I2C_STATUS_ACK_ERROR;
                     return ;
               }
          }
  *
- * i przed return ; wprowadziæ kod do wygenerowania sygna³u I2C STOP jak ni¿ej
+ * i przed return ; wprowadziï¿½ kod do wygenerowania sygnaï¿½u I2C STOP jak niï¿½ej
  *
  *
-  	     if (cmd->ack.en == 1) {			<--------- wystarczy wyszukaæ tê liniê
+  	     if (cmd->ack.en == 1) {			<--------- wystarczy wyszukaï¿½ tï¿½ liniï¿½
               if ((retVal & 0x01) != cmd->ack.exp) {
                     p_i2c->status = I2C_STATUS_ACK_ERROR;
 
-                    //........................ NAPRAWA sygna³u I2C STOP
+                    //........................ NAPRAWA sygnaï¿½u I2C STOP
                     i2c_master_wait(1);
                     i2c_master_set_dc(i2c_num, 0, i2c_last_state[i2c_num]->scl);
                     i2c_master_set_dc(i2c_num, 0, 1);
@@ -46,12 +46,12 @@
               }
          }
  *
- *  UWAGA! nale¿y o tym pamiêtaæ zawsze gdy na nowo wygenerowane zostanie œrodowisko
+ *  UWAGA! naleï¿½y o tym pamiï¿½taï¿½ zawsze gdy na nowo wygenerowane zostanie ï¿½rodowisko
  *  RTOS dla ESP8266, albo gdy zostanie wgrane/rozpakowane nowe ale nie zawiera tej
  *  poprawki.
  *
- *  Gdy zapomni siê o tej poprawce - to niestety nowo albo na nowo skompilowane
- *  projekty mog¹ zacz¹æ dzia³aæ niepoprawnie.
+ *  Gdy zapomni siï¿½ o tej poprawce - to niestety nowo albo na nowo skompilowane
+ *  projekty mogï¿½ zaczï¿½ï¿½ dziaï¿½aï¿½ niepoprawnie.
  *
  *
  *
@@ -87,27 +87,12 @@
 
 #define I2CDEV_TIMEOUT		1000
 
-
-
 #define MUTEX_ON		1
-
-
 
 static const char *TAG = "mk_i2c";
 
 
 static SemaphoreHandle_t i2c_mutex;
-
-
-
-
-
-
-
-
-
-
-
 
 
 

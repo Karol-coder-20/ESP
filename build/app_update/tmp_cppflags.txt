@@ -1,1 +1,0 @@
-8ebd2ae-dirty esp8266_fota_http_rtos v3.4-73-gd48c4c17

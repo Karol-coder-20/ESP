@@ -1,0 +1,12 @@
+Docker Compilation
+After compiling, follow these steps within the Docker container:
+
+Copy the compilation command provided by the compiler for running Python.
+Navigate to the '/esp/flash' folder.
+Execute the script "copy_flash_files.sh" with the parameter "<text from the compiler>".
+Windows Execution
+If you are using Windows, follow these steps:
+
+Run the script "run.py" with the parameter "COMx," where x is the port to which the ESP is connected.
+The script will generate a file named "flash.bat."
+Execute the generated batch file to initiate the flashing process on the ESP via the specified COM port.

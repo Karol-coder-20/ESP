@@ -1,8 +1,5 @@
 /*
  * mk_fota_http.c
- *
- *  Created on: 29 kwi 2022
- *      Author: Miros�aw Karda�
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,6 +48,8 @@
 #include <time.h>
 #include "lwip/apps/sntp.h"
 
+#include "mqtt.h"
+
 
 //-----------------------------------------
 
@@ -98,10 +97,6 @@ static char text[BUFFSIZE + 1] = { 0 };
 static int binary_file_length = 0;
 /*socket id*/
 static int socket_id = -1;
-static int socket_id2 = -1;
-
-
-
 
 /*read buffer by byte still delim ,return read bytes counts*/
 static int read_until(const char *buffer, char delim, int len) {
@@ -155,6 +150,7 @@ static bool connect_to_http_server(void *pvParameter) {
 static void __attribute__((noreturn)) task_fatal_error() {
 
     ESP_LOGE(TAG, "Exiting task due to fatal error...");
+    mqtt_publish("/topic/pc", "Exiting task due to fatal error...");
     close(socket_id);
     (void)vTaskDelete(NULL);
 
@@ -180,12 +176,14 @@ bool _esp_ota_firm_parse_http(esp_ota_firm_t *ota_firm, const char *text, size_t
             ota_firm->ota_size = ota_firm->content_len;
             ota_firm->ota_offset = 0;
             ESP_LOGI(TAG, "parse Content-Length:%d, ota_size %d", ota_firm->content_len, ota_firm->ota_size);
+            mqtt_publish("/topic/pc", "parse Content-Length:%d, ota_size %d", ota_firm->content_len, ota_firm->ota_size);
         }
 
         i_read_len = read_until(&text[i], '\n', total_len - i);
 
         if (i_read_len > total_len - i) {
             ESP_LOGE(TAG, "recv malformed http header");
+            mqtt_publish("/topic/pc", "recv malformed http header");
             task_fatal_error();
         }
 
@@ -193,6 +191,7 @@ bool _esp_ota_firm_parse_http(esp_ota_firm_t *ota_firm, const char *text, size_t
         if (i_read_len == 2) {
             if (ota_firm->content_len == 0) {
                 ESP_LOGE(TAG, "did not parse Content-Length item");
+                mqtt_publish("/topic/pc", "did not parse Content-Length item");
                 task_fatal_error();
             }
 
@@ -217,6 +216,7 @@ static size_t esp_ota_firm_do_parse_msg(esp_ota_firm_t *ota_firm, const char *in
             if (_esp_ota_firm_parse_http(ota_firm, in_buf, in_len, &tmp)) {
                 ota_firm->state = ESP_OTA_PREPARE;
                 ESP_LOGD(TAG, "Http parse %d bytes", tmp);
+                mqtt_publish("/topic/pc", "Http parse %d bytes", tmp);
                 parsed_bytes = tmp;
             }
             break;
@@ -229,7 +229,9 @@ static size_t esp_ota_firm_do_parse_msg(esp_ota_firm_t *ota_firm, const char *in
                 ota_firm->write_bytes += ota_firm->read_bytes - ota_firm->ota_offset;
                 ota_firm->state = ESP_OTA_START;
                 ESP_LOGD(TAG, "Receive %d bytes and start to update", ota_firm->read_bytes);
+                mqtt_publish("/topic/pc", "Receive %d bytes and start to update", ota_firm->read_bytes);
                 ESP_LOGD(TAG, "Write %d total %d", ota_firm->bytes, ota_firm->write_bytes);
+                mqtt_publish("/topic/pc", "Write %d total %d", ota_firm->bytes, ota_firm->write_bytes);
             }
 
             break;
@@ -245,6 +247,7 @@ static size_t esp_ota_firm_do_parse_msg(esp_ota_firm_t *ota_firm, const char *in
             ota_firm->write_bytes += ota_firm->bytes;
 
             ESP_LOGD(TAG, "Write %d total %d", ota_firm->bytes, ota_firm->write_bytes);
+//            mqtt_publish("/topic/pc", "Write %d total %d", ota_firm->bytes, ota_firm->write_bytes);
 
             break;
         case ESP_OTA_RECVED:
@@ -254,6 +257,7 @@ static size_t esp_ota_firm_do_parse_msg(esp_ota_firm_t *ota_firm, const char *in
         default:
             parsed_bytes = 0;
             ESP_LOGD(TAG, "State is %d", ota_firm->state);
+            mqtt_publish("/topic/pc", "State is %d", ota_firm->state);
             break;
     }
 
@@ -265,10 +269,12 @@ static void esp_ota_firm_parse_msg(esp_ota_firm_t *ota_firm, const char *in_buf,
     size_t parse_bytes = 0;
 
     ESP_LOGD(TAG, "Input %d bytes", in_len);
+//    mqtt_publish("/topic/pc", "Input %d bytes", in_len);
 
     do {
         size_t bytes = esp_ota_firm_do_parse_msg(ota_firm, in_buf + parse_bytes, in_len - parse_bytes);
         ESP_LOGD(TAG, "Parse %d bytes", bytes);
+//        mqtt_publish("/topic/pc", "Parse %d bytes", bytes);
         if (bytes)
             parse_bytes += bytes;
     } while (parse_bytes != in_len);
@@ -302,17 +308,9 @@ static void esp_ota_firm_init(esp_ota_firm_t *ota_firm, const esp_partition_t *u
     ota_firm->update_ota_num = update_partition->subtype - ESP_PARTITION_SUBTYPE_APP_OTA_0;
 
     ESP_LOGI(TAG, "Total OTA number %d update to %d part", ota_firm->ota_num, ota_firm->update_ota_num);
+    mqtt_publish("/topic/pc", "Total OTA number %d update to %d part", ota_firm->ota_num, ota_firm->update_ota_num);
 
 }
-
-
-
-
-
-
-
-
-
 
 void ota_example_task(void *pvParameter) {
 
@@ -323,6 +321,7 @@ void ota_example_task(void *pvParameter) {
     const esp_partition_t *update_partition = NULL;
 
     ESP_LOGI(TAG, "Starting OTA example... @ %p flash %s", ota_example_task, CONFIG_ESPTOOLPY_FLASHSIZE);
+    mqtt_publish("/topic/pc", "Starting OTA example... @ %p flash %s", ota_example_task, CONFIG_ESPTOOLPY_FLASHSIZE);
 
     const esp_partition_t *configured = esp_ota_get_boot_partition();
     const esp_partition_t *running = esp_ota_get_running_partition();
@@ -330,73 +329,73 @@ void ota_example_task(void *pvParameter) {
     if (configured != running) {
         ESP_LOGW(TAG, "Configured OTA boot partition at offset 0x%08x, but running from offset 0x%08x",
                  configured->address, running->address);
+        mqtt_publish("/topic/pc", "Configured OTA boot partition at offset 0x%08x, but running from offset 0x%08x",
+                configured->address, running->address);
         ESP_LOGW(TAG, "(This can happen if either the OTA boot data or preferred boot image become corrupted somehow.)");
+        mqtt_publish("/topic/pc", "(This can happen if either the OTA boot data or preferred boot image become corrupted somehow.)");
     }
     ESP_LOGI(TAG, "Running partition type %d subtype %d (offset 0x%08x)",
              running->type, running->subtype, running->address);
-
+    mqtt_publish("/topic/pc", "Running partition type %d subtype %d (offset 0x%08x)",
+            running->type, running->subtype, running->address);
     /*connect to http server*/
     if (connect_to_http_server(tcp_ip)) {
         ESP_LOGI(TAG, "Connected to http server");
+        mqtt_publish("/topic/pc", "Connected to http server");
     } else {
         ESP_LOGE(TAG, "Connect to http server failed!");
+        mqtt_publish("/topic/pc", "Connect to http server failed!");
         task_fatal_error();
     }
 
     /*send GET request to http server*/
 
-#ifdef TCP_DOMENA
     const char * frormat_str =
-        "GET /%s HTTP/1.1\r\n"
-        "Host: %s\r\n"
-    	"Connection: keep-alive\r\n"
-    	"Cache-Control: no-cache\r\n"
-    	"User-Agent: [ Akademia ATNEL  ***  KURS ESP i RTOS ]\r\n"
-    	"Accept: */*\r\n\r\n";
-#else
-    const char * frormat_str =
-        "GET /%s HTTP/1.1\r\n"
+        "GET /firmware HTTP/1.1\r\n"
         "Host: %s:%d\r\n"
-    	"Connection: keep-alive\r\n"
-    	"Cache-Control: no-cache\r\n"
-    	"User-Agent: [ Akademia ATNEL  ***  KURS ESP i RTOS ]\r\n"
     	"Accept: */*\r\n\r\n";
-#endif
+
 
 
     char *http_request = NULL;
-#ifdef TCP_DOMENA
-    int get_len = asprintf(&http_request, frormat_str, FOTA_FILENAME, TCP_DOMENA );
-#else
+
 //    int get_len = asprintf(&http_request, frormat_str, FOTA_FILENAME, TCP_REMOTE_ADDR, TCP_REMOTE_PORT);
-    int get_len = asprintf(&http_request, frormat_str, FOTA_FILENAME, tcp_ip, TCP_REMOTE_PORT);
-#endif
+    int get_len = asprintf(&http_request, frormat_str, tcp_ip, TCP_REMOTE_PORT);
+
     printf(http_request);
     if (get_len < 0) {
         ESP_LOGE(TAG, "Failed to allocate memory for GET request buffer");
+        mqtt_publish("/topic/pc", "Failed to allocate memory for GET request buffer");
         task_fatal_error();
     }
     int res = send(socket_id, http_request, get_len, 0);
     free(http_request);
+    http_request = NULL;
 
     if (res < 0) {
         ESP_LOGE(TAG, "Send GET request to server failed");
+        mqtt_publish("/topic/pc", "Send GET request to server failed");
         task_fatal_error();
     } else {
         ESP_LOGI(TAG, "Send GET request to server succeeded");
+        mqtt_publish("/topic/pc", "Send GET request to server succeeded");
     }
 
     update_partition = esp_ota_get_next_update_partition(NULL);
     ESP_LOGI(TAG, "Writing to partition subtype %d at offset 0x%x",
              update_partition->subtype, update_partition->address);
+    mqtt_publish("/topic/pc", "Writing to partition subtype %d at offset 0x%x",
+            update_partition->subtype, update_partition->address);
     assert(update_partition != NULL);
 
     err = esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &update_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_ota_begin failed, error=%d", err);
+        mqtt_publish("/topic/pc", "esp_ota_begin failed, error=%d", err);
         task_fatal_error();
     }
     ESP_LOGI(TAG, "esp_ota_begin succeeded");
+    mqtt_publish("/topic/pc", "esp_ota_begin succeeded");
 
     bool flag = true;
     esp_ota_firm_t ota_firm;
@@ -410,6 +409,7 @@ void ota_example_task(void *pvParameter) {
         int buff_len = recv(socket_id, text, TEXT_BUFFSIZE, 0);
         if (buff_len < 0) { /*receive error*/
             ESP_LOGE(TAG, "Error: receive data error! errno=%d", errno);
+            mqtt_publish("/topic/pc", "Error: receive data error! errno=%d", errno);
             task_fatal_error();
         } else if (buff_len > 0) { /*deal with response body*/
             esp_ota_firm_parse_msg(&ota_firm, text, buff_len);
@@ -423,19 +423,25 @@ void ota_example_task(void *pvParameter) {
             err = esp_ota_write( update_handle, (const void *)ota_write_data, buff_len);
             if (err != ESP_OK) {
                 ESP_LOGE(TAG, "Error: esp_ota_write failed! err=0x%x", err);
+                mqtt_publish("/topic/pc", "Error: esp_ota_write failed! err=0x%x", err);
                 task_fatal_error();
             }
             binary_file_length += buff_len;
 
             uint8_t pr = (binary_file_length*100ul) / ota_firm.content_len;
             printf( "[9;LL]" "Have written image - %d %%\n", pr );	// xxx: warto�� procentowa
+            mqtt_publish("/topic/pc", "Have written image - %d %%\n", pr );
+
+
 
         } else if (buff_len == 0) {  /*packet over*/
             flag = false;
             ESP_LOGI(TAG, "Connection closed, all packets received");
+            mqtt_publish("/topic/pc", "Connection closed, all packets received");
             close(socket_id);
         } else {
             ESP_LOGE(TAG, "Unexpected recv result");
+            mqtt_publish("/topic/pc", "Unexpected recv result");
         }
 
         if (esp_ota_firm_is_finished(&ota_firm))
@@ -443,17 +449,21 @@ void ota_example_task(void *pvParameter) {
     }
 
     ESP_LOGI(TAG, "Total Write binary data length : %d", binary_file_length);
+    mqtt_publish("/topic/pc", "Total Write binary data length : %d", binary_file_length);
 
     if (esp_ota_end(update_handle) != ESP_OK) {
         ESP_LOGE(TAG, "esp_ota_end failed!");
+        mqtt_publish("/topic/pc", "esp_ota_end failed!");
         task_fatal_error();
     }
     err = esp_ota_set_boot_partition(update_partition);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_ota_set_boot_partition failed! err=0x%x", err);
+        mqtt_publish("/topic/pc", "esp_ota_set_boot_partition failed! err=0x%x", err);
         task_fatal_error();
     }
     ESP_LOGI(TAG, "Prepare to restart system!");
+    mqtt_publish("/topic/pc", "Prepare to restart system!");
 
 
     esp_restart();
